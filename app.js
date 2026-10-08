@@ -1,11 +1,70 @@
-const {groups,articles}=window.WEBZINE;
-const content=document.querySelector('#content');
-const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const groupOf=a=>groups.find(g=>g.id===a.group);
-document.querySelector('#nav').innerHTML=groups.map(g=>`<a href="#section/${g.id}" style="--accent:${g.color}"><b>${g.short.slice(0,1)}</b><span>${g.short}</span></a>`).join('');
-function card(a,large=false){const g=groupOf(a);return `<a class="story ${large?'large':''} ${a.image?'':'text-story'} ${a.imageKind||''}" href="#article/${a.id}" style="--accent:${g.color}">${a.image?`<div class="story-photo"><img src="${a.image}" alt="" loading="lazy"></div>`:''}<div class="story-copy"><span class="eyebrow">${g.title} </span><h3>${escapeHTML(a.title)}</h3><p>${escapeHTML(a.lead)}</p><span class="read">이야기 읽기</span></div></a>`}
-function home(){return `<div class="issue-line"><span>ANNUAL RECORD · 2026</span><span>수업 · 연구 · 공동체</span></div><section class="cover"><div class="cover-copy"><p class="eyebrow">한 해의 실천을 펼치다</p><h1>소리로 잇고,<br>기술로 짓고,<br><em>동료와 넓히다.</em></h1><p class="intro">교실에서 시작된 노래가 학교로,<br>한 사람의 실천이 동료의 수업으로 이어진 기록.</p><a class="button" href="#article/5">여는 글 읽기</a><span class="cover-credit">순천승평중학교 교사 유정준<br>2026 교육활동 성과보고서</span></div><figure><img src="hero/cover.jpg" alt="음악과 배움의 성장을 담은 보고서 표지 그림"><figcaption>음악으로 쓰고, 함께 자라는 한 해</figcaption></figure></section><div class="edition-bar"><span><strong>2026</strong> 교육활동 기록</span><span><strong>6</strong> 실천 영역</span><span><strong>89</strong> 편의 이야기</span></div><section class="section-block"><div class="section-head"><div><p class="eyebrow">EDITOR'S PICK</p><h2>올해의 이야기를 만나다</h2></div><p>교실의 작은 변화부터 함께하는 연구까지</p></div><div class="feature-grid">${[16,24,55].map((id,i)=>card(articles.find(a=>a.id===id),i===0)).join('')}</div></section><section class="section-block"><div class="section-head"><div><p class="eyebrow">CHAPTERS</p><h2>여섯 갈래의 실천</h2></div></div><div class="chapters">${groups.slice(1,7).map((g,i)=>`<a href="#section/${g.id}" style="--accent:${g.color}"><span class="chapter-no">0${i+1}</span><div><h3>${g.title}</h3><p>${articles.filter(a=>a.group===g.id).length}편의 기록</p></div><span class="chapter-action">펼쳐보기</span></a>`).join('')}</div></section><section class="section-block"><div class="section-head"><div><p class="eyebrow">TOGETHER</p><h2>함께 넓힌 배움의 자리</h2></div><a href="#section/community">연구회 이야기 모아보기</a></div><div class="story-grid">${[74,76,91].map(id=>card(articles.find(a=>a.id===id))).join('')}</div></section><section class="closing"><img src="hero/tree.jpg" alt="건반 위에 뿌리내린 나무" loading="lazy"><div><p class="eyebrow">다음 걸음을 위해</p><h2>학교가 남겨야 할 것은<br>스스로 고르고 고친 흔적.</h2><p>잘한 것과 모자란 것을 함께 기록하고,<br>다음 해의 수업으로 이어갑니다.</p><a class="button" href="#article/97">한 해의 성찰 읽기</a></div></section>`}
-function section(g){const list=articles.filter(a=>a.group===g.id);return `<section class="chapter-heading" style="--accent:${g.color}"><a class="back" href="#home">첫 화면</a><p class="eyebrow">2026 · ${list.length}편의 기록</p><h1>${g.title}</h1><p>${escapeHTML(list[0].lead)}</p></section><div class="story-grid section-list">${list.map(a=>card(a)).join('')}</div>`}
-function article(a){const g=groupOf(a),list=articles.filter(x=>x.group===a.group),i=list.indexOf(a);return `<div class="reader-layout" style="--accent:${g.color}"><aside class="reader-toc"><a href="#section/${g.id}">${g.title}</a><ol>${list.map(x=>`<li><a href="#article/${x.id}" ${x.id===a.id?'aria-current="page"':''}>${escapeHTML(x.title)}</a></li>`).join('')}</ol></aside><article class="reader"><div class="reader-meta"><a href="#section/${g.id}">${g.title}</a></div><div class="article-body">${a.body}</div><div class="reader-bottom">${i>0?`<a href="#article/${list[i-1].id}"><small>이전 이야기</small>${escapeHTML(list[i-1].title)}</a>`:'<span></span>'}${i<list.length-1?`<a href="#article/${list[i+1].id}"><small>다음 이야기</small>${escapeHTML(list[i+1].title)}</a>`:`<a href="#section/${g.id}">목록으로 돌아가기</a>`}</div></article></div>`}
-function render(){const [route,id]=location.hash.slice(1).split('/');let active='home';let title='2026 교육활동 웹진';if(route==='article'&&articles.some(a=>a.id===Number(id))){const a=articles.find(a=>a.id===Number(id));content.innerHTML=article(a);active=a.group;title=a.title;}else if(route==='section'&&groups.some(g=>g.id===id)){const g=groups.find(g=>g.id===id);content.innerHTML=section(g);active=g.id;title=g.title;}else{content.innerHTML=home();}document.title=title+' · 유정준';document.querySelectorAll('.rail a').forEach(a=>{const on=a.hash===(active==='home'?'#home':'#section/'+active);a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});content.querySelectorAll('table').forEach(t=>{const wrap=document.createElement('div');wrap.className='table-scroll';wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','가로로 스크롤할 수 있는 표');t.before(wrap);wrap.append(t);});content.querySelectorAll('.article-body a[href^="http"]').forEach(a=>{a.target='_blank';a.rel='noopener noreferrer'});window.scrollTo(0,0);}
-window.addEventListener('hashchange',()=>{render();content.focus({preventScroll:true})});render();
+const {groups,articles}=window.WEBZINE;
+const content=document.querySelector('#content');
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const groupOf=a=>groups.find(g=>g.id===a.group);
+document.querySelector('#nav').innerHTML=groups.map(g=>`<a href="#section/${g.id}" style="--accent:${g.color}"><b>${g.short.slice(0,1)}</b><span>${g.short}</span></a>`).join('');
+function card(a,large=false){const g=groupOf(a);return `<a class="story ${large?'large':''} ${a.image?'':'text-story'} ${a.imageKind||''}" href="#article/${a.id}" style="--accent:${g.color}">${a.image?`<div class="story-photo"><img src="${a.image}" alt="" loading="lazy"></div>`:''}<div class="story-copy"><span class="eyebrow">${g.title} </span><h3>${escapeHTML(a.title)}</h3><p>${escapeHTML(a.lead)}</p><span class="read">이야기 읽기</span></div></a>`}
+function home(){return `<div class="issue-line"><span>ANNUAL RECORD · 2026</span><span>수업 · 연구 · 공동체</span></div><section class="cover"><div class="cover-copy"><p class="eyebrow">한 해의 실천을 펼치다</p><h1>소리로 잇고,<br>기술로 짓고,<br><em>동료와 넓히다.</em></h1><p class="intro">교실에서 시작된 노래가 학교로,<br>한 사람의 실천이 동료의 수업으로 이어진 기록.</p><a class="button" href="#article/5">여는 글 읽기</a><span class="cover-credit">순천승평중학교 교사 유정준<br>2026 교육활동 성과보고서</span></div><figure><img src="hero/cover.jpg" alt="음악과 배움의 성장을 담은 보고서 표지 그림"><figcaption>음악으로 쓰고, 함께 자라는 한 해</figcaption></figure></section><div class="edition-bar"><span><strong>2026</strong> 교육활동 기록</span><span><strong>6</strong> 실천 영역</span><span><strong>89</strong> 편의 이야기</span></div><section class="section-block"><div class="section-head"><div><p class="eyebrow">EDITOR'S PICK</p><h2>올해의 이야기를 만나다</h2></div><p>교실의 작은 변화부터 함께하는 연구까지</p></div><div class="feature-grid">${[16,24,55].map((id,i)=>card(articles.find(a=>a.id===id),i===0)).join('')}</div></section><section class="section-block"><div class="section-head"><div><p class="eyebrow">CHAPTERS</p><h2>여섯 갈래의 실천</h2></div></div><div class="chapters">${groups.slice(1,7).map((g,i)=>`<a href="#section/${g.id}" style="--accent:${g.color}"><span class="chapter-no">0${i+1}</span><div><h3>${g.title}</h3><p>${articles.filter(a=>a.group===g.id).length}편의 기록</p></div><span class="chapter-action">펼쳐보기</span></a>`).join('')}</div></section><section class="section-block"><div class="section-head"><div><p class="eyebrow">TOGETHER</p><h2>함께 넓힌 배움의 자리</h2></div><a href="#section/community">연구회 이야기 모아보기</a></div><div class="story-grid">${[74,76,91].map(id=>card(articles.find(a=>a.id===id))).join('')}</div></section><section class="closing"><img src="hero/tree.jpg" alt="건반 위에 뿌리내린 나무" loading="lazy"><div><p class="eyebrow">다음 걸음을 위해</p><h2>학교가 남겨야 할 것은<br>스스로 고르고 고친 흔적.</h2><p>잘한 것과 모자란 것을 함께 기록하고,<br>다음 해의 수업으로 이어갑니다.</p><a class="button" href="#article/97">한 해의 성찰 읽기</a></div></section>`}
+function section(g){const list=articles.filter(a=>a.group===g.id);return `<section class="chapter-heading" style="--accent:${g.color}"><a class="back" href="#home">첫 화면</a><p class="eyebrow">2026 · ${list.length}편의 기록</p><h1>${g.title}</h1><p>${escapeHTML(list[0].lead)}</p></section><div class="story-grid section-list">${list.map(a=>card(a)).join('')}</div>`}
+function article(a){const g=groupOf(a),list=articles.filter(x=>x.group===a.group),i=list.indexOf(a);return `<div class="reader-layout" style="--accent:${g.color}"><aside class="reader-toc"><a href="#section/${g.id}">${g.title}</a><ol>${list.map(x=>`<li><a href="#article/${x.id}" ${x.id===a.id?'aria-current="page"':''}>${escapeHTML(x.title)}</a></li>`).join('')}</ol></aside><article class="reader"><div class="reader-meta"><a href="#section/${g.id}">${g.title}</a></div><div class="article-body">${a.body}</div><div class="reader-bottom">${i>0?`<a href="#article/${list[i-1].id}"><small>이전 이야기</small>${escapeHTML(list[i-1].title)}</a>`:'<span></span>'}${i<list.length-1?`<a href="#article/${list[i+1].id}"><small>다음 이야기</small>${escapeHTML(list[i+1].title)}</a>`:`<a href="#section/${g.id}">목록으로 돌아가기</a>`}</div></article></div>`}
+// Explicit destinations verified against the linked platforms and their QR codes.
+const mediaDestinations = {};
+function registerMedia(paths, url, label) {
+  paths.forEach(path => { mediaDestinations[path] = {url, label}; });
+}
+const platformBase = 'https://edunity21.github.io/';
+registerMedia(['img1/az_home.jpg','img1/az_page.jpg','img1/az_rec.jpg'], platformBase+'azalea/', '진달래꽃 감상 플랫폼 열기');
+registerMedia(['img2/mt1.jpg','img2/mt2.jpg','img2/mt3.jpg'], platformBase+'musetech/', '음악 산업 탐구 플랫폼 열기');
+registerMedia(['img2/mu1.jpg','img2/mu2.jpg','img2/mu3.jpg','img2/mu4.jpg','img2/mu5.jpg','img2/mu6.jpg'], platformBase+'musicalinus/', 'MUSICALINUS 제작소 열기');
+registerMedia(['img2/out1.jpg','img2/out2.jpg','img2/out3.jpg','img2/out4.jpg','img2/out5.jpg','img2/out6.jpg','img1/ar_me.jpg'], platformBase+'archive/#me', 'ME 프로젝트 우수작품 영상 보기');
+registerMedia(['img2/sa1.jpg','img2/sa2.jpg','img2/sa3.jpg','img2/sa4.jpg','img2/sa5.jpg','img2/sa7.jpg','img2/sa8.jpg'], platformBase+'spmorning/player2', '승평의 아침 재생 페이지 열기');
+registerMedia(['img1/ar_gray.jpg'], platformBase+'archive/#gray', '회색지대 영상 보기');
+registerMedia(['img2/pm1.jpg','img2/pm2.jpg','img2/pm3.jpg','img2/pm5.jpg'], 'https://youtu.be/JH1s2zt6rM4', '판문열차 영상 보기');
+const platformQRs = {
+  azalea:'azalea', musetech:'musetech', musicalinus:'musicalinus',
+  aesang:'aesang', DFMR:'dfmr', sinabro:'sinabro', archive:'archive'
+};
+Object.entries(platformQRs).forEach(([site, file]) => {
+  registerMedia(['qr/'+file+'.svg'], platformBase+site+'/', '연결 페이지 열기');
+});
+// The original ojakgyo QR encodes an old URL; the report links to ojackyo.
+registerMedia(['qr/ojakgyo.svg'], platformBase+'ojackyo/', '오작교 플랫폼 열기');
+platformQRs.ojackyo = 'ojakgyo';
+function linkArticleMedia() {
+  content.querySelectorAll('.article-body img').forEach(img => {
+    const destination = mediaDestinations[img.getAttribute('src')];
+    if (!destination || img.closest('a')) return;
+    const link = document.createElement('a');
+    link.className = 'media-link';
+    link.href = destination.url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.title = destination.label+' (새 탭)';
+    link.setAttribute('aria-label', (img.alt ? img.alt+' — ' : '')+link.title);
+    const picture = img.parentElement.classList.contains('ph') ? img.parentElement : img;
+    picture.before(link);
+    link.append(picture);
+    const hint = document.createElement('span');
+    hint.className = 'media-link-hint';
+    hint.textContent = destination.label+' ↗';
+    link.append(hint);
+  });
+  content.querySelectorAll('.article-body a.platform-preview').forEach(link => {
+    if (link.querySelector('.media-qr')) return;
+    const url = new URL(link.href);
+    if (url.origin !== 'https://edunity21.github.io') return;
+    const site = url.pathname.split('/')[1];
+    const qr = platformQRs[site];
+    // Do not display the outdated QR whose encoded URL differs from the link.
+    if (!qr || site === 'ojackyo') return;
+    const img = document.createElement('img');
+    img.className = 'media-qr';
+    img.src = 'qr/'+qr+'.svg';
+    img.alt = '클릭하거나 스캔하여 플랫폼 열기';
+    img.loading = 'lazy';
+    link.append(img);
+  });
+}
+
+function render(){const [route,id]=location.hash.slice(1).split('/');let active='home';let title='2026 교육활동 웹진';if(route==='article'&&articles.some(a=>a.id===Number(id))){const a=articles.find(a=>a.id===Number(id));content.innerHTML=article(a);active=a.group;title=a.title;}else if(route==='section'&&groups.some(g=>g.id===id)){const g=groups.find(g=>g.id===id);content.innerHTML=section(g);active=g.id;title=g.title;}else{content.innerHTML=home();}document.title=title+' · 유정준';document.querySelectorAll('.rail a').forEach(a=>{const on=a.hash===(active==='home'?'#home':'#section/'+active);a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});content.querySelectorAll('table').forEach(t=>{const wrap=document.createElement('div');wrap.className='table-scroll';wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','가로로 스크롤할 수 있는 표');t.before(wrap);wrap.append(t);});linkArticleMedia();content.querySelectorAll('.article-body a[href^="http"]').forEach(a=>{a.target='_blank';a.rel='noopener noreferrer'});window.scrollTo(0,0);}
+window.addEventListener('hashchange',()=>{render();content.focus({preventScroll:true})});render();
